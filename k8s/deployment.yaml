@@ -1,0 +1,156 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frame-tv-art-config
+  namespace: monitoring
+data:
+  TV_IP: "192.168.1.50"               # Replace with your Frame TV IP
+  ART_FOLDER: "/art"                  # Path inside container
+  UPDATE_INTERVAL: "0"                # Minutes between slideshow updates (0=disabled)
+  CHECK_INTERVAL: "60"                # Seconds between folder scans (0=run once)
+  MATTE: "none"                       # Matte style for uploads
+  TOKEN_FILE: "token_file.txt"        # Token file name
+  INCLUDE_FAVOURITES: "0"             # Include TV favourites (1=yes)
+  SEQUENTIAL: "0"                     # Sequential slideshow (1=yes, 0=random)
+  EXIT_IF_OFF: "0"                    # Exit if TV off (1=yes)
+  SYNC: "1"                           # Auto-sync with PIL (1=enabled)
+  DEBUG: "0"                          # Debug logging (1=enabled)
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frame-tv-art-images
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard # Adjust to your cluster
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frame-tv-art-updater
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frame-tv-art-updater
+  template:
+    metadata:
+      labels:
+        app: frame-tv-art-updater
+    spec:
+      containers:
+        - name: updater
+          image: ghcr.io/REPLACE_OWNER/frame-tv-art-updater:latest # Replace owner/tag
+          imagePullPolicy: Always
+          env:
+            - name: TV_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: TV_IP
+            - name: ART_FOLDER
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: ART_FOLDER
+            - name: UPDATE_INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: UPDATE_INTERVAL
+            - name: CHECK_INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: CHECK_INTERVAL
+            - name: MATTE
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: MATTE
+            - name: TOKEN_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: TOKEN_FILE
+            - name: INCLUDE_FAVOURITES
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: INCLUDE_FAVOURITES
+            - name: SEQUENTIAL
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: SEQUENTIAL
+            - name: EXIT_IF_OFF
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: EXIT_IF_OFF
+            - name: SYNC
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: SYNC
+            - name: DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: DEBUG
+          volumeMounts:
+            - name: art-images
+              mountPath: /art
+              readOnly: true
+            - name: persistent-data
+              mountPath: /app/samsung-tv-ws-api/example
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          # Simple liveness just checks process still running
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "ps -o pid= 1 >/dev/null"]
+            initialDelaySeconds: 60
+            periodSeconds: 300
+          startupProbe:
+            exec:
+              command: ["sh", "-c", "ps -o pid= 1 >/dev/null"]
+            failureThreshold: 10
+            periodSeconds: 10
+      volumes:
+        - name: art-images
+          persistentVolumeClaim:
+            claimName: frame-tv-art-images
+        - name: persistent-data
+          persistentVolumeClaim:
+            claimName: frame-tv-art-data
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frame-tv-art-data
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: standard # Adjust to your cluster

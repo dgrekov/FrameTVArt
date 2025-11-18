@@ -1,0 +1,41 @@
+services:
+  frame-tv-art-updater:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UPSTREAM_REPO: https://github.com/NickWaterton/samsung-tv-ws-api.git
+        UPSTREAM_VERSION: master
+    image: frame-tv-art-updater:local
+    container_name: frame-tv-art-updater
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - TV_IP=${TV_IP}
+      - ART_FOLDER=/art
+      - UPDATE_INTERVAL=${UPDATE_INTERVAL:-0}
+      - CHECK_INTERVAL=${CHECK_INTERVAL:-60}
+      - MATTE=${MATTE:-none}
+      - TOKEN_FILE=${TOKEN_FILE:-token_file.txt}
+      - INCLUDE_FAVOURITES=${INCLUDE_FAVOURITES:-0}
+      - SEQUENTIAL=${SEQUENTIAL:-0}
+      - EXIT_IF_OFF=${EXIT_IF_OFF:-0}
+      - SYNC=${SYNC:-1}
+      - DEBUG=${DEBUG:-0}
+    volumes:
+      # Mount your local image folder (replace with actual path)
+      - ./images:/art:ro
+      # Persistent storage for token and uploaded_files.json
+      - ./data:/app/samsung-tv-ws-api/example
+    networks:
+      - frame-tv-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  frame-tv-net:
+    driver: bridge

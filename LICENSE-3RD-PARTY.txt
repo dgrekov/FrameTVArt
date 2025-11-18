@@ -1,0 +1,2 @@
+This container integrates the public repository NickWaterton/samsung-tv-ws-api.
+Refer to that repository for its license and terms. This file is informational only.
