@@ -28,7 +28,7 @@ ART_FOLDER="${ART_FOLDER:-/art}"
 UPDATE_INTERVAL="${UPDATE_INTERVAL:-0}"            # minutes; 0 disables slideshow
 CHECK_INTERVAL="${CHECK_INTERVAL:-60}"             # seconds; 0 runs once
 MATTE="${MATTE:-none}"
-TOKEN_FILE="${TOKEN_FILE:-token_file.txt}"        # relative to script directory
+TOKEN_FILE="${TOKEN_FILE:-/data/token_file.txt}"        # persistent token file path (host-mounted /data)
 
 # Validate numeric values
 if ! validate_number "$UPDATE_INTERVAL"; then
@@ -64,6 +64,7 @@ echo "  TV IP: $TV_IP" >&2
 echo "  Art Folder: $ART_FOLDER" >&2
 echo "  Update Interval: ${UPDATE_INTERVAL}min, Check Interval: ${CHECK_INTERVAL}s" >&2
 echo "  Matte: $MATTE, Sequential: ${SEQUENTIAL:-0}, Favourites: ${INCLUDE_FAVOURITES:-0}" >&2
+echo "  Token file: $TOKEN_FILE" >&2
 
 exec python "$SCRIPT" "$TV_IP" -f "$ART_FOLDER" -u "$UPDATE_INTERVAL" -c "$CHECK_INTERVAL" \
     -m "$MATTE" -t "$TOKEN_FILE" $INCLUDE_F $SEQUENTIAL_FLAG $EXIT_IF_OFF_FLAG $SYNC_FLAG $DEBUG_FLAG

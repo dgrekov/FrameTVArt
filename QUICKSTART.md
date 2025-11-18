@@ -30,7 +30,7 @@ docker run -d \
   -e UPDATE_INTERVAL=1440 \
   -e CHECK_INTERVAL=60 \
   -v /path/to/images:/art:ro \
-  -v /path/to/data:/app/samsung-tv-ws-api/example \
+   -v /path/to/data:/data \
   ghcr.io/<owner>/frame-tv-art-updater:latest
 ```
 
@@ -76,7 +76,7 @@ INCLUDE_FAVOURITES=1
 
 ## Persistence
 
-Mount `/app/samsung-tv-ws-api/example` to preserve:
+Mount `/data` to preserve:
 - `token_file.txt` (TV pairing token)
 - `uploaded_files.json` (tracking uploaded art)
 
@@ -102,6 +102,6 @@ docker-compose exec frame-tv-art-updater ps aux
 **Manual script invocation:**
 ```bash
 docker-compose exec frame-tv-art-updater python \
-  /app/samsung-tv-ws-api/example/async_art_update_from_directory.py \
-  192.168.1.50 -f /art -u 0 -c 0 -D
+   /app/samsung-tv-ws-api/example/async_art_update_from_directory.py \
+   192.168.1.50 -f /art -u 0 -c 0 -D
 ```

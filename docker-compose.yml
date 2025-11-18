@@ -17,7 +17,7 @@ services:
       - UPDATE_INTERVAL=${UPDATE_INTERVAL:-0}
       - CHECK_INTERVAL=${CHECK_INTERVAL:-60}
       - MATTE=${MATTE:-none}
-      - TOKEN_FILE=${TOKEN_FILE:-token_file.txt}
+      - TOKEN_FILE=${TOKEN_FILE:-/data/token_file.txt}
       - INCLUDE_FAVOURITES=${INCLUDE_FAVOURITES:-0}
       - SEQUENTIAL=${SEQUENTIAL:-0}
       - EXIT_IF_OFF=${EXIT_IF_OFF:-0}
@@ -26,8 +26,8 @@ services:
     volumes:
       # Mount your local image folder (replace with actual path)
       - ./images:/art:ro
-      # Persistent storage for token and uploaded_files.json
-      - ./data:/app/samsung-tv-ws-api/example
+      # Persistent storage for token and uploaded_files.json (mounted at /data)
+      - ./data:/data
     networks:
       - frame-tv-net
     logging:

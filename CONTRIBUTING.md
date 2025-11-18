@@ -44,8 +44,8 @@ docker run --rm \
   -e TV_IP=192.168.1.50 \
   -e UPDATE_INTERVAL=1 \
   -e DEBUG=1 \
-  -v ./images:/art:ro \
-  -v ./data:/app/samsung-tv-ws-api/example \
+   -v ./images:/art:ro \
+   -v ./data:/data \
   frame-tv-art-updater:test
 ```
 
@@ -97,7 +97,7 @@ kubectl apply -f k8s/deployment.yaml
 
 Check logs:
 ```bash
-kubectl logs -n frame-tv-art -l app=frame-tv-art-updater -f
+kubectl logs -n media -l app=frame-tv-art-updater -f
 ```
 
 ### CI/CD
@@ -122,9 +122,9 @@ The workflow includes:
 
 ## Architecture Notes
 
-- **Persistence**: Token and `uploaded_files.json` stored in `/app/samsung-tv-ws-api/example`
+- **Persistence**: Token and `uploaded_files.json` stored in `/data` (mount host `./data` to `/data`)
 - **User**: Runs as non-root user `appuser` (UID 1000)
-- **Volumes**: `/art` (images), `/app/samsung-tv-ws-api/example` (state)
+- **Volumes**: `/art` (images), `/data` (state)
 - **Health**: Process check via `pgrep`
 
 ## Upstream Dependency
