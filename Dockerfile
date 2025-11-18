@@ -36,12 +36,9 @@ RUN chmod +x /app/entrypoint.sh
 RUN groupadd -r appuser && useradd -r -g appuser -u 1000 appuser \
     && chown -R appuser:appuser /app
 
-# Create persistent data directory
-RUN mkdir -p /app/samsung-tv-ws-api/example && chown -R appuser:appuser /app/samsung-tv-ws-api/example
-
 USER appuser
 
-VOLUME ["/art", "/app/samsung-tv-ws-api/example"]
+VOLUME ["/art", "/data"]
 
 HEALTHCHECK --interval=5m --timeout=10s --start-period=30s --retries=3 \
     CMD pgrep -f async_art_update_from_directory.py || exit 1
