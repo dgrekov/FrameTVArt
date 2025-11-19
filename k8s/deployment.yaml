@@ -7,7 +7,7 @@ metadata:
 data:
   TV_IP: "10.0.0.136"               # Replace with your Frame TV IP
   ART_FOLDER: "/art"                  # Path inside container
-  UPDATE_INTERVAL: "0"                # Minutes between slideshow updates (0=disabled)
+  UPDATE_INTERVAL: "2"                # Minutes between slideshow updates (0=disabled)
   CHECK_INTERVAL: "60"                # Seconds between folder scans (0=run once)
   MATTE: "none"                       # Matte style for uploads
   TOKEN_FILE: "/data/token_file.txt"        # Token file path (mounted at /data)
@@ -15,7 +15,7 @@ data:
   SEQUENTIAL: "0"                     # Sequential slideshow (1=yes, 0=random)
   EXIT_IF_OFF: "0"                    # Exit if TV off (1=yes)
   SYNC: "1"                           # Auto-sync with PIL (1=enabled)
-  DEBUG: "0"                          # Debug logging (1=enabled)
+  DEBUG: "1"                          # Debug logging (1=enabled)
   FRAME_TV_CERT_PATH: "/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt"
   FRAME_TV_TLS_VERIFY: "1"
   FRAME_TV_TLS_HOSTNAME: "SmartViewSDK"  # Must be resolvable to TV_IP via hostAliases
@@ -113,6 +113,7 @@ spec:
           volumeMounts:
             - name: art-images
               mountPath: /art
+              subPath: "Art"
               readOnly: true
             - name: persistent-data
               mountPath: /data
@@ -123,21 +124,21 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
-          # Simple liveness just checks process still running
-          livenessProbe:
-            exec:
-              command: ["sh", "-c", "ps -o pid= 1 >/dev/null"]
-            initialDelaySeconds: 60
-            periodSeconds: 300
-          startupProbe:
-            exec:
-              command: ["sh", "-c", "ps -o pid= 1 >/dev/null"]
-            failureThreshold: 10
-            periodSeconds: 10
+          # # Simple liveness just checks process still running
+          # livenessProbe:
+          #   exec:
+          #     command: ["sh", "-c", "ps -o pid= 1 >/dev/null"]
+          #   initialDelaySeconds: 60
+          #   periodSeconds: 300
+          # startupProbe:
+          #   exec:
+          #     command: ["sh", "-c", "ps -o pid= 1 >/dev/null"]
+          #   failureThreshold: 10
+          #   periodSeconds: 10
       hostAliases:
-        - ip: "10.0.0.136"          # Replace with your Frame TV IP
+        - ip: "10.0.0.136"          # Keep in sync with ConfigMap TV_IP
           hostnames:
-            - SmartViewSDK
+            - smartviewsdk          # RFC1123 requires lowercase; DNS comparison is case-insensitive
       volumes:
         - name: art-images
           persistentVolumeClaim:

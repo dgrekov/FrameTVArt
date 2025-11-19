@@ -53,7 +53,7 @@ kubectl logs -n media -l app=frame-tv-art-updater -f
 - The Frame TV certificate is issued to `SmartViewSDK`. Keep `FRAME_TV_TLS_HOSTNAME` aligned with the CN and map it to `TV_IP`.
 - The base image already trusts `certs/frame-tv-smartviewsdk.pem`. Override `FRAME_TV_CERT_PATH` only if you have a custom certificate bundle.
 - Compose already sets `extra_hosts` based on your env file. For `docker run`, pass `--add-host <hostname>:<TV_IP>` (see example above).
-- Kubernetes users must update `hostAliases` in `k8s/deployment.yaml` so `<hostname>` resolves to the TV IP inside the pod.
+- Kubernetes users must update `hostAliases` in `k8s/deployment.yaml` so `<hostname>` resolves to the TV IP inside the pod (use lowercase values to satisfy RFC 1123, e.g., `smartviewsdk`).
 - If you must bypass verification temporarily, set `FRAME_TV_TLS_VERIFY=0`, but re-enable it once connectivity issues are resolved.
 
 ## Common Configurations

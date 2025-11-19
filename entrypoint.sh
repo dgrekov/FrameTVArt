@@ -79,5 +79,8 @@ if [ "$TARGET_HOST" != "$TV_IP" ]; then
   echo "  TLS Hostname: $TARGET_HOST (maps to $TV_IP)" >&2
 fi
 
+echo "Running Command: python \"$SCRIPT\" \"$TARGET_HOST\" -f \"$ART_FOLDER\" -u \"$UPDATE_INTERVAL\" -c \"$CHECK_INTERVAL\" \
+    -m \"$MATTE\" -t \"$TOKEN_FILE\" $INCLUDE_F $SEQUENTIAL_FLAG $EXIT_IF_OFF_FLAG $SYNC_FLAG $DEBUG_FLAG" >&2
+
 exec python "$SCRIPT" "$TARGET_HOST" -f "$ART_FOLDER" -u "$UPDATE_INTERVAL" -c "$CHECK_INTERVAL" \
     -m "$MATTE" -t "$TOKEN_FILE" $INCLUDE_F $SEQUENTIAL_FLAG $EXIT_IF_OFF_FLAG $SYNC_FLAG $DEBUG_FLAG
