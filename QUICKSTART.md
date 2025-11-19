@@ -6,6 +6,7 @@
    ```bash
    cp .env.example .env
    # Edit .env with your TV IP
+   # Ensure FRAME_TV_TLS_HOSTNAME matches the certificate (default SmartViewSDK)
    mkdir -p images data
    # Copy images to ./images/
    ```
@@ -27,23 +28,33 @@ docker run -d \
   --name frame-tv-art \
   --restart unless-stopped \
   -e TV_IP=192.168.1.50 \
+   -e FRAME_TV_TLS_HOSTNAME=SmartViewSDK \
   -e UPDATE_INTERVAL=1440 \
   -e CHECK_INTERVAL=60 \
   -v /path/to/images:/art:ro \
    -v /path/to/data:/data \
+   --add-host SmartViewSDK:192.168.1.50 \
   ghcr.io/<owner>/frame-tv-art-updater:latest
 ```
 
 ## Kubernetes
 
 ```bash
-# Edit k8s/deployment.yaml first (update TV_IP in ConfigMap)
+# Edit k8s/deployment.yaml first (update TV_IP in ConfigMap and hostAliases)
 kubectl apply -f k8s/deployment.yaml
 
 # Check status
-kubectl get pods -n frame-tv-art
-kubectl logs -n frame-tv-art -l app=frame-tv-art-updater -f
+kubectl get pods -n media
+kubectl logs -n media -l app=frame-tv-art-updater -f
 ```
+
+## TLS Requirements
+
+- The Frame TV certificate is issued to `SmartViewSDK`. Keep `FRAME_TV_TLS_HOSTNAME` aligned with the CN and map it to `TV_IP`.
+- The base image already trusts `certs/frame-tv-smartviewsdk.pem`. Override `FRAME_TV_CERT_PATH` only if you have a custom certificate bundle.
+- Compose already sets `extra_hosts` based on your env file. For `docker run`, pass `--add-host <hostname>:<TV_IP>` (see example above).
+- Kubernetes users must update `hostAliases` in `k8s/deployment.yaml` so `<hostname>` resolves to the TV IP inside the pod.
+- If you must bypass verification temporarily, set `FRAME_TV_TLS_VERIFY=0`, but re-enable it once connectivity issues are resolved.
 
 ## Common Configurations
 

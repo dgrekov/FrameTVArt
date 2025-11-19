@@ -6,9 +6,12 @@ ARG UPSTREAM_VERSION=master
 
 WORKDIR /build
 
+COPY patches /patches
+
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && update-ca-certificates || true \
-    && git clone --depth 1 --branch ${UPSTREAM_VERSION} ${UPSTREAM_REPO} samsung-tv-ws-api \
+    && GIT_SSL_NO_VERIFY=true git clone --depth 1 --branch ${UPSTREAM_VERSION} ${UPSTREAM_REPO} samsung-tv-ws-api \
+    && cp /patches/rest.py samsung-tv-ws-api/samsungtvws/rest.py \
     && rm -rf samsung-tv-ws-api/.git \
     && apt-get purge -y git \
     && apt-get autoremove -y \
@@ -22,8 +25,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy upstream repo from builder
 COPY --from=builder /build/samsung-tv-ws-api /app/samsung-tv-ws-api
+
+COPY certs/frame-tv-smartviewsdk.pem /usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt
+RUN update-ca-certificates
 
 # Install dependencies
 RUN pip install --no-cache-dir -r samsung-tv-ws-api/requirements.txt \

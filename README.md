@@ -21,6 +21,11 @@ Containerized wrapper around [NickWaterton/samsung-tv-ws-api](https://github.com
 | `EXIT_IF_OFF` | No | `0` | Set to `1` to exit if TV is off (`-O`). |
 | `SYNC` | No | `1` | Set to `0` to disable initial PIL synchronization (`-s`). |
 | `DEBUG` | No | `0` | Set to `1` to enable debug logging (`-D`). |
+| `FRAME_TV_CERT_PATH` | No | `/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt` | PEM bundle containing the Frame TV certificate chain. Copied into the image and trusted by default. |
+| `FRAME_TV_TLS_VERIFY` | No | `1` | Set to `0` to skip HTTPS verification if you are troubleshooting (not recommended). |
+| `FRAME_TV_TLS_HOSTNAME` | No | `SmartViewSDK` | Hostname that matches the TV certificate CN. Map it to `TV_IP` via `extra_hosts`/`hostAliases` so TLS verification succeeds. |
+
+> The Frame TV presents a certificate for `SmartViewSDK`. To keep TLS verification enabled, make sure the container can resolve `FRAME_TV_TLS_HOSTNAME` to your `TV_IP` (e.g., via `docker run --add-host SmartViewSDK:<TV_IP>`, `extra_hosts` in Compose, or `hostAliases` in Kubernetes).
 
 ## Building Locally
 ```bash
@@ -32,13 +37,17 @@ Mount (or copy) a folder of images into the container at the path specified by `
 ```bash
 docker run --rm \
   -e TV_IP="<your_tv_ip>" \
+  -e FRAME_TV_TLS_HOSTNAME=SmartViewSDK \
   -e ART_FOLDER="/art" \
   -e UPDATE_INTERVAL=1440 \
   -e CHECK_INTERVAL=60 \
   -e SEQUENTIAL=1 \
   -v /path/to/images:/art:ro \
+  --add-host SmartViewSDK:<your_tv_ip> \
   frame-tv-art-updater:local
 ```
+
+The image already trusts `certs/frame-tv-smartviewsdk.pem`. Override `FRAME_TV_CERT_PATH` only if you provide a different certificate bundle. When running outside Docker Compose, always add a host entry (or equivalent DNS) so `FRAME_TV_TLS_HOSTNAME` resolves to your TV IP.
 
 ## GitHub Container Registry (GHCR)
 A GitHub Actions workflow (`.github/workflows/build.yml`) builds and pushes multi-arch images on pushes to `main` and tags matching `v*`.

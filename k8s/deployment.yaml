@@ -16,6 +16,9 @@ data:
   EXIT_IF_OFF: "0"                    # Exit if TV off (1=yes)
   SYNC: "1"                           # Auto-sync with PIL (1=enabled)
   DEBUG: "0"                          # Debug logging (1=enabled)
+  FRAME_TV_CERT_PATH: "/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt"
+  FRAME_TV_TLS_VERIFY: "1"
+  FRAME_TV_TLS_HOSTNAME: "SmartViewSDK"  # Must be resolvable to TV_IP via hostAliases
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -92,6 +95,21 @@ spec:
                 configMapKeyRef:
                   name: frame-tv-art-config
                   key: DEBUG
+            - name: FRAME_TV_CERT_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: FRAME_TV_CERT_PATH
+            - name: FRAME_TV_TLS_VERIFY
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: FRAME_TV_TLS_VERIFY
+            - name: FRAME_TV_TLS_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: FRAME_TV_TLS_HOSTNAME
           volumeMounts:
             - name: art-images
               mountPath: /art
@@ -116,6 +134,10 @@ spec:
               command: ["sh", "-c", "ps -o pid= 1 >/dev/null"]
             failureThreshold: 10
             periodSeconds: 10
+      hostAliases:
+        - ip: "10.0.0.136"          # Replace with your Frame TV IP
+          hostnames:
+            - SmartViewSDK
       volumes:
         - name: art-images
           persistentVolumeClaim:

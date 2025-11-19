@@ -30,6 +30,16 @@ CHECK_INTERVAL="${CHECK_INTERVAL:-60}"             # seconds; 0 runs once
 MATTE="${MATTE:-none}"
 TOKEN_FILE="${TOKEN_FILE:-/data/token_file.txt}"        # persistent token file path (host-mounted /data)
 
+FRAME_TV_CERT_PATH="${FRAME_TV_CERT_PATH:-/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt}"
+FRAME_TV_TLS_VERIFY="${FRAME_TV_TLS_VERIFY:-1}"
+FRAME_TV_TLS_HOSTNAME="${FRAME_TV_TLS_HOSTNAME:-SmartViewSDK}"
+export FRAME_TV_CERT_PATH FRAME_TV_TLS_VERIFY
+
+TARGET_HOST="$TV_IP"
+if [ -n "$FRAME_TV_TLS_HOSTNAME" ]; then
+  TARGET_HOST="$FRAME_TV_TLS_HOSTNAME"
+fi
+
 # Validate numeric values
 if ! validate_number "$UPDATE_INTERVAL"; then
     echo "Error: UPDATE_INTERVAL must be numeric, got: $UPDATE_INTERVAL" >&2
@@ -65,6 +75,9 @@ echo "  Art Folder: $ART_FOLDER" >&2
 echo "  Update Interval: ${UPDATE_INTERVAL}min, Check Interval: ${CHECK_INTERVAL}s" >&2
 echo "  Matte: $MATTE, Sequential: ${SEQUENTIAL:-0}, Favourites: ${INCLUDE_FAVOURITES:-0}" >&2
 echo "  Token file: $TOKEN_FILE" >&2
+if [ "$TARGET_HOST" != "$TV_IP" ]; then
+  echo "  TLS Hostname: $TARGET_HOST (maps to $TV_IP)" >&2
+fi
 
-exec python "$SCRIPT" "$TV_IP" -f "$ART_FOLDER" -u "$UPDATE_INTERVAL" -c "$CHECK_INTERVAL" \
+exec python "$SCRIPT" "$TARGET_HOST" -f "$ART_FOLDER" -u "$UPDATE_INTERVAL" -c "$CHECK_INTERVAL" \
     -m "$MATTE" -t "$TOKEN_FILE" $INCLUDE_F $SEQUENTIAL_FLAG $EXIT_IF_OFF_FLAG $SYNC_FLAG $DEBUG_FLAG
