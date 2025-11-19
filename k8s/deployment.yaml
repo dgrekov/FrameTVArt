@@ -39,7 +39,7 @@ spec:
           env:
             - name: TV_IP
               valueFrom:
-                configMapKeyRef:
+                configMapKeyRef:  
                   name: frame-tv-art-config
                   key: TV_IP
             - name: ART_FOLDER

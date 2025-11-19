@@ -6,7 +6,8 @@ ARG UPSTREAM_VERSION=master
 
 WORKDIR /build
 
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && update-ca-certificates || true \
     && git clone --depth 1 --branch ${UPSTREAM_VERSION} ${UPSTREAM_REPO} samsung-tv-ws-api \
     && rm -rf samsung-tv-ws-api/.git \
     && apt-get purge -y git \
@@ -27,6 +28,9 @@ COPY --from=builder /build/samsung-tv-ws-api /app/samsung-tv-ws-api
 # Install dependencies
 RUN pip install --no-cache-dir -r samsung-tv-ws-api/requirements.txt \
     && pip install --no-cache-dir Pillow
+
+# Install upstream package so `samsungtvws` is importable
+RUN pip install --no-cache-dir /app/samsung-tv-ws-api
 
 # Copy entrypoint
 COPY entrypoint.sh /app/entrypoint.sh
