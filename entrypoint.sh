@@ -29,6 +29,23 @@ UPDATE_INTERVAL="${UPDATE_INTERVAL:-0}"            # minutes; 0 disables slidesh
 CHECK_INTERVAL="${CHECK_INTERVAL:-60}"             # seconds; 0 runs once
 MATTE="${MATTE:-none}"
 TOKEN_FILE="${TOKEN_FILE:-/data/token_file.txt}"        # persistent token file path (host-mounted /data)
+TOKEN_DIR="$(dirname "$TOKEN_FILE")"
+
+if [ ! -d "$TOKEN_DIR" ]; then
+  if ! mkdir -p "$TOKEN_DIR" 2>/dev/null; then
+    echo "Error: unable to create token directory $TOKEN_DIR. Check volume permissions or adjust TOKEN_FILE." >&2
+    echo "Hint: mount /data with write access for UID/GID 1000 or configure your Kubernetes fsGroup." >&2
+    exit 1
+  fi
+fi
+
+TOKEN_CHECK_FILE="$TOKEN_DIR/.token_write_test.$$"
+if ! touch "$TOKEN_CHECK_FILE" 2>/dev/null; then
+  echo "Error: token directory $TOKEN_DIR is not writable. Ensure your persistent volume allows UID/GID 1000." >&2
+  echo "Hint: set fsGroup in Kubernetes or fix host volume permissions." >&2
+  exit 1
+fi
+rm -f "$TOKEN_CHECK_FILE" 2>/dev/null || true
 
 FRAME_TV_CERT_PATH="${FRAME_TV_CERT_PATH:-/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt}"
 FRAME_TV_TLS_VERIFY="${FRAME_TV_TLS_VERIFY:-1}"

@@ -122,7 +122,7 @@ The workflow includes:
 
 ## Architecture Notes
 
-- **Persistence**: Token and `uploaded_files.json` stored in `/data` (mount host `./data` to `/data`)
+- **Persistence**: Token and `uploaded_files.json` stored in `/data` (mount host `./data` to `/data`) — ensure the volume is writable by UID/GID `1000` (the Kubernetes manifest sets `fsGroup: 1000`).
 - **User**: Runs as non-root user `appuser` (UID 1000)
 - **Volumes**: `/art` (images), `/data` (state)
 - **Health**: Process check via `pgrep`

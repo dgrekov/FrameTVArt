@@ -28,6 +28,8 @@ Containerized wrapper around [NickWaterton/samsung-tv-ws-api](https://github.com
 > The Frame TV presents a certificate for `SmartViewSDK`. To keep TLS verification enabled, make sure the container can resolve `FRAME_TV_TLS_HOSTNAME` to your `TV_IP` (e.g., via `docker run --add-host SmartViewSDK:<TV_IP>`, `extra_hosts` in Compose, or `hostAliases` in Kubernetes).
 >
 > Kubernetes `hostAliases` enforce lowercase hostnames (RFC 1123). Use `smartviewsdk` there—DNS is case-insensitive, so TLS validation still works even if `FRAME_TV_TLS_HOSTNAME` remains `SmartViewSDK`.
+>
+> **Kubernetes persistence note:** The provided manifest configures `runAsUser`/`runAsGroup`/`fsGroup` to `1000` so the `/data` PVC is writable by the non-root user. If you maintain your own manifests, replicate that security context or otherwise ensure UID/GID `1000` can write to `/data`.
 
 ## Building Locally
 ```bash

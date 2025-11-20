@@ -48,6 +48,8 @@ kubectl get pods -n media
 kubectl logs -n media -l app=frame-tv-art-updater -f
 ```
 
+> Pods run as UID/GID `1000` and rely on the pod-level `fsGroup: 1000` security context configured in `k8s/deployment.yaml` so `/data` stays writable. If you trim the manifest, be sure your volume allows UID/GID `1000` or adjust `TOKEN_FILE` to a writable path.
+
 ## TLS Requirements
 
 - The Frame TV certificate is issued to `SmartViewSDK`. Keep `FRAME_TV_TLS_HOSTNAME` aligned with the CN and map it to `TV_IP`.

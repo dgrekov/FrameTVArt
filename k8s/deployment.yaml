@@ -35,6 +35,12 @@ spec:
       labels:
         app: frame-tv-art-updater
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: updater
           image: ghcr.io/dgrekov/frame-tv-art-updater:main # Replace owner/tag

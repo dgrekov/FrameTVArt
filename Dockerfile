@@ -45,8 +45,8 @@ RUN pip install --no-cache-dir /app/samsung-tv-ws-api
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser -u 1000 appuser \
+# Create non-root user with stable UID/GID (1000) so volume permissions can be managed via fsGroup
+RUN groupadd -r -g 1000 appuser && useradd -r -g appuser -u 1000 appuser \
     && chown -R appuser:appuser /app
 
 USER appuser
