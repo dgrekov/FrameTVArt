@@ -102,6 +102,13 @@ Without this volume, you'll need to re-pair and re-upload on every restart.
 DEBUG=1
 ```
 
+**Large galleries / OOM at startup:**
+```env
+SYNC=auto
+SYNC_AUTO_THRESHOLD=200
+```
+Leave `SYNC=auto` (default) so the container disables PIL sync when the image count exceeds the threshold, or set `SYNC=0` to skip sync entirely on resource-constrained clusters.
+
 **Test TV connectivity:**
 ```bash
 docker-compose exec frame-tv-art-updater sh -c 'ping -c 3 $TV_IP'

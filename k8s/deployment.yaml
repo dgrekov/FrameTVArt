@@ -14,7 +14,8 @@ data:
   INCLUDE_FAVOURITES: "0"             # Include TV favourites (1=yes)
   SEQUENTIAL: "0"                     # Sequential slideshow (1=yes, 0=random)
   EXIT_IF_OFF: "0"                    # Exit if TV off (1=yes)
-  SYNC: "1"                           # Auto-sync with PIL (1=enabled)
+  SYNC: "auto"                        # Auto-sync with PIL (auto|0|1)
+  SYNC_AUTO_THRESHOLD: "200"          # Disable sync automatically above this many files
   DEBUG: "1"                          # Debug logging (1=enabled)
   FRAME_TV_CERT_PATH: "/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt"
   FRAME_TV_TLS_VERIFY: "1"
@@ -96,6 +97,11 @@ spec:
                 configMapKeyRef:
                   name: frame-tv-art-config
                   key: SYNC
+            - name: SYNC_AUTO_THRESHOLD
+              valueFrom:
+                configMapKeyRef:
+                  name: frame-tv-art-config
+                  key: SYNC_AUTO_THRESHOLD
             - name: DEBUG
               valueFrom:
                 configMapKeyRef:

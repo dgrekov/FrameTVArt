@@ -19,7 +19,8 @@ Containerized wrapper around [NickWaterton/samsung-tv-ws-api](https://github.com
 | `INCLUDE_FAVOURITES` | No | `0` | Set to `1` to include TV favourites in rotation (`-F`). |
 | `SEQUENTIAL` | No | `0` | Set to `1` for sequential slideshow (`-S`); random otherwise. |
 | `EXIT_IF_OFF` | No | `0` | Set to `1` to exit if TV is off (`-O`). |
-| `SYNC` | No | `1` | Set to `0` to disable initial PIL synchronization (`-s`). |
+| `SYNC` | No | `auto` | `auto` enables sync only when the number of files in `ART_FOLDER` is below `SYNC_AUTO_THRESHOLD`; set to `1` to force enable or `0` to disable. |
+| `SYNC_AUTO_THRESHOLD` | No | `200` | Maximum number of files allowed before `auto` mode disables PIL sync to avoid high memory usage. |
 | `DEBUG` | No | `0` | Set to `1` to enable debug logging (`-D`). |
 | `FRAME_TV_CERT_PATH` | No | `/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt` | PEM bundle containing the Frame TV certificate chain. Copied into the image and trusted by default. |
 | `FRAME_TV_TLS_VERIFY` | No | `1` | Set to `0` to skip HTTPS verification if you are troubleshooting (not recommended). |
@@ -30,6 +31,8 @@ Containerized wrapper around [NickWaterton/samsung-tv-ws-api](https://github.com
 > Kubernetes `hostAliases` enforce lowercase hostnames (RFC 1123). Use `smartviewsdk` there—DNS is case-insensitive, so TLS validation still works even if `FRAME_TV_TLS_HOSTNAME` remains `SmartViewSDK`.
 >
 > **Kubernetes persistence note:** The provided manifest configures `runAsUser`/`runAsGroup`/`fsGroup` to `1000` so the `/data` PVC is writable by the non-root user. If you maintain your own manifests, replicate that security context or otherwise ensure UID/GID `1000` can write to `/data`.
+>
+> **Sync performance note:** `SYNC=auto` (default) disables the heavy PIL synchronization step when `ART_FOLDER` contains more than `SYNC_AUTO_THRESHOLD` files. Increase the threshold or set `SYNC=1` only if you have enough memory for the entire gallery, otherwise use `SYNC=0` to skip it entirely.
 
 ## Building Locally
 ```bash

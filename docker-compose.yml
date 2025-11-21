@@ -21,7 +21,8 @@ services:
       - INCLUDE_FAVOURITES=${INCLUDE_FAVOURITES:-0}
       - SEQUENTIAL=${SEQUENTIAL:-0}
       - EXIT_IF_OFF=${EXIT_IF_OFF:-0}
-      - SYNC=${SYNC:-1}
+      - SYNC=${SYNC:-auto}
+      - SYNC_AUTO_THRESHOLD=${SYNC_AUTO_THRESHOLD:-200}
       - DEBUG=${DEBUG:-0}
       - FRAME_TV_TLS_HOSTNAME=${FRAME_TV_TLS_HOSTNAME:-SmartViewSDK}
     volumes:

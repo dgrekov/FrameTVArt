@@ -13,6 +13,10 @@ validate_number() {
     echo "$1" | grep -Eq '^[0-9]+(\.[0-9]+)?$' || return 1
 }
 
+validate_integer() {
+    echo "$1" | grep -Eq '^[0-9]+$' || return 1
+}
+
 # Required variables
 if [ -z "$TV_IP" ]; then
   echo "Error: TV_IP environment variable required." >&2
@@ -29,6 +33,8 @@ UPDATE_INTERVAL="${UPDATE_INTERVAL:-0}"            # minutes; 0 disables slidesh
 CHECK_INTERVAL="${CHECK_INTERVAL:-60}"             # seconds; 0 runs once
 MATTE="${MATTE:-none}"
 TOKEN_FILE="${TOKEN_FILE:-/data/token_file.txt}"        # persistent token file path (host-mounted /data)
+SYNC_MODE_INPUT="${SYNC:-auto}"
+SYNC_AUTO_THRESHOLD="${SYNC_AUTO_THRESHOLD:-200}"
 TOKEN_DIR="$(dirname "$TOKEN_FILE")"
 
 if [ ! -d "$TOKEN_DIR" ]; then
@@ -46,6 +52,11 @@ if ! touch "$TOKEN_CHECK_FILE" 2>/dev/null; then
   exit 1
 fi
 rm -f "$TOKEN_CHECK_FILE" 2>/dev/null || true
+
+if ! validate_integer "$SYNC_AUTO_THRESHOLD"; then
+  echo "Error: SYNC_AUTO_THRESHOLD must be an integer value, got: $SYNC_AUTO_THRESHOLD" >&2
+  exit 1
+fi
 
 FRAME_TV_CERT_PATH="${FRAME_TV_CERT_PATH:-/usr/local/share/ca-certificates/frame-tv-smartviewsdk.crt}"
 FRAME_TV_TLS_VERIFY="${FRAME_TV_TLS_VERIFY:-1}"
@@ -72,12 +83,49 @@ fi
 [ "${INCLUDE_FAVOURITES}" = "1" ] && INCLUDE_F="-F" || INCLUDE_F=""
 [ "${SEQUENTIAL}" = "1" ] && SEQUENTIAL_FLAG="-S" || SEQUENTIAL_FLAG=""
 [ "${EXIT_IF_OFF}" = "1" ] && EXIT_IF_OFF_FLAG="-O" || EXIT_IF_OFF_FLAG=""
-# SYNC: upstream uses -s to DISABLE sync; default enabled unless SYNC=0
-if [ "${SYNC:-1}" = "0" ]; then SYNC_FLAG="-s"; else SYNC_FLAG=""; fi
 [ "${DEBUG}" = "1" ] && DEBUG_FLAG="-D" || DEBUG_FLAG=""
 
 if [ ! -d "$ART_FOLDER" ]; then
   mkdir -p "$ART_FOLDER" 2>/dev/null || echo "Warning: could not create folder $ART_FOLDER" >&2
+fi
+
+ART_FILE_COUNT=$(find "$ART_FOLDER" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d '[:space:]')
+ART_FILE_COUNT=${ART_FILE_COUNT:-0}
+SYNC_MODE=$(printf '%s' "$SYNC_MODE_INPUT" | tr '[:upper:]' '[:lower:]')
+[ -z "$SYNC_MODE" ] && SYNC_MODE="auto"
+
+auto_sync_decision() {
+  if [ "$ART_FILE_COUNT" -gt "$SYNC_AUTO_THRESHOLD" ]; then
+    SYNC_EFFECTIVE=0
+    SYNC_DECISION="auto-disabled ($ART_FILE_COUNT files > threshold $SYNC_AUTO_THRESHOLD)"
+  else
+    SYNC_EFFECTIVE=1
+    SYNC_DECISION="auto-enabled ($ART_FILE_COUNT files <= threshold $SYNC_AUTO_THRESHOLD)"
+  fi
+}
+
+case "$SYNC_MODE" in
+  0|false|off)
+    SYNC_EFFECTIVE=0
+    SYNC_DECISION="disabled (forced via SYNC=$SYNC_MODE_INPUT)"
+    ;;
+  1|true|on)
+    SYNC_EFFECTIVE=1
+    SYNC_DECISION="enabled (forced via SYNC=$SYNC_MODE_INPUT)"
+    ;;
+  auto)
+    auto_sync_decision
+    ;;
+  *)
+    echo "Warning: SYNC='$SYNC_MODE_INPUT' is invalid. Falling back to auto mode." >&2
+    auto_sync_decision
+    ;;
+esac
+
+if [ "${SYNC_EFFECTIVE:-1}" -eq 0 ]; then
+  SYNC_FLAG="-s"
+else
+  SYNC_FLAG=""
 fi
 
 SCRIPT="/app/samsung-tv-ws-api/example/async_art_update_from_directory.py"
@@ -92,6 +140,7 @@ echo "  Art Folder: $ART_FOLDER" >&2
 echo "  Update Interval: ${UPDATE_INTERVAL}min, Check Interval: ${CHECK_INTERVAL}s" >&2
 echo "  Matte: $MATTE, Sequential: ${SEQUENTIAL:-0}, Favourites: ${INCLUDE_FAVOURITES:-0}" >&2
 echo "  Token file: $TOKEN_FILE" >&2
+echo "  PIL Sync: $SYNC_DECISION" >&2
 if [ "$TARGET_HOST" != "$TV_IP" ]; then
   echo "  TLS Hostname: $TARGET_HOST (maps to $TV_IP)" >&2
 fi
