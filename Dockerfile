@@ -2,7 +2,9 @@
 FROM python:3.12-slim AS builder
 
 ARG UPSTREAM_REPO=https://github.com/NickWaterton/samsung-tv-ws-api.git
-ARG UPSTREAM_VERSION=master
+# Pinned commit: upstream master was rewritten (package renamed to samsungframetv,
+# 2026-10), which our patches/rest.py no longer applies to.
+ARG UPSTREAM_VERSION=7e7766807da0b048e441eef86e7130a5f5030ed9
 
 WORKDIR /build
 
@@ -10,7 +12,9 @@ COPY patches /patches
 
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && update-ca-certificates || true \
-    && GIT_SSL_NO_VERIFY=true git clone --depth 1 --branch ${UPSTREAM_VERSION} ${UPSTREAM_REPO} samsung-tv-ws-api \
+    && git init -q samsung-tv-ws-api \
+    && GIT_SSL_NO_VERIFY=true git -C samsung-tv-ws-api fetch -q --depth 1 ${UPSTREAM_REPO} ${UPSTREAM_VERSION} \
+    && git -C samsung-tv-ws-api checkout -q FETCH_HEAD \
     && cp /patches/rest.py samsung-tv-ws-api/samsungtvws/rest.py \
     && rm -rf samsung-tv-ws-api/.git \
     && apt-get purge -y git \
